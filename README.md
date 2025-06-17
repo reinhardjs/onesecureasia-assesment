@@ -50,28 +50,7 @@ A comprehensive full-stack application for testing domain security configuration
    cd onesecureasia-assesment
    ```
 
-2. **Install Python dependencies**
-   ```bash
-   cd python-tests
-   pip install -r requirements.txt
-   cd ..
-   ```
-
-3. **Install backend dependencies**
-   ```bash
-   cd backend
-   npm install
-   cd ..
-   ```
-
-4. **Install frontend dependencies**
-   ```bash
-   cd frontend
-   npm install
-   cd ..
-   ```
-
-5. **Configure environment variables**
+2. **Configure environment variables**
    
    Copy the example environment file and configure your settings:
    ```bash
@@ -85,25 +64,62 @@ A comprehensive full-stack application for testing domain security configuration
    DB_PORT=5432
    DB_NAME=onesecure_db
    DB_USER=postgres
-   DB_PASSWORD=your_password_here
-   JWT_SECRET=your_jwt_secret_key_here
+   DB_PASSWORD=postgres123
+   JWT_SECRET=development_jwt_secret_key_change_in_production
    NODE_ENV=development
    PORT=3001
    ```
 
-6. **Start the development environment**
+3. **Install Python dependencies**
    ```bash
-   # Terminal 1: Start backend
+   cd python-tests
+   pip install -r requirements.txt
+   cd ..
+   ```
+
+4. **Install backend dependencies**
+   ```bash
    cd backend
-   npm install  # Install dependencies including dotenv
-   npm run dev
+   npm install
+   cd ..
+   ```
+
+5. **Start the backend server**
+   ```bash
+   cd backend
+   node src/server.js
+   ```
    
-   # Terminal 2: Start frontend (in development mode)
-   cd frontend
-   npm start
+   The backend will start on port 3001 and automatically:
+   - Try to connect to PostgreSQL database
+   - Fall back to in-memory storage if database is unavailable
+   - Create a default admin user (username: `admin`, password: `admin123`)
+   - Serve API documentation at http://localhost:3001/api-docs
+
+6. **Test the application**
+   ```bash
+   # Health check
+   curl http://localhost:3001/health
+   
+   # Login as admin
+   curl -X POST http://localhost:3001/api/auth/login \
+     -H "Content-Type: application/json" \
+     -d '{"username": "admin", "password": "admin123"}'
+   
+   # Add a domain (replace TOKEN with the token from login response)
+   curl -X POST http://localhost:3001/api/domains \
+     -H "Content-Type: application/json" \
+     -H "Authorization: Bearer TOKEN" \
+     -d '{"domain": "google.com"}'
+   
+   # Run security assessment
+   curl -X POST http://localhost:3001/api/test/1 \
+     -H "Authorization: Bearer TOKEN"
    ```
 
 ### Docker Deployment
+
+**Note**: Docker builds may fail in environments with network restrictions (e.g., firewall blocking package repositories). For local development, use the direct Node.js setup above.
 
 1. **Using Docker Compose (Recommended)**
    
@@ -115,7 +131,7 @@ A comprehensive full-stack application for testing domain security configuration
    
    Then start the services:
    ```bash
-   docker-compose up --build
+   docker compose up --build
    ```
    
    This will start:

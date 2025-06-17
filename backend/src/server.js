@@ -8,7 +8,7 @@ const bcrypt = require('bcryptjs');
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 
-const { pool, initializeDatabase } = require('./database');
+const { pool, query, initializeDatabase } = require('./database');
 const { authenticateToken, generateToken } = require('./auth');
 const { evaluateSecurityStatus } = require('./security-evaluator');
 
@@ -90,7 +90,7 @@ app.post('/api/auth/login', async (req, res) => {
   }
 
   try {
-    const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+    const result = await query('SELECT * FROM users WHERE username = $1', [username]);
     
     if (result.rows.length === 0) {
       return res.status(401).json({ error: 'Invalid credentials' });
@@ -104,7 +104,7 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
     // Update last login
-    await pool.query('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = $1', [user.id]);
+    await query('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = $1', [user.id]);
 
     const token = generateToken(user.id, user.username);
     res.json({
@@ -155,7 +155,7 @@ app.post('/api/auth/register', async (req, res) => {
 
   try {
     // Check if user already exists
-    const existingUser = await pool.query(
+    const existingUser = await query(
       'SELECT * FROM users WHERE username = $1 OR email = $2',
       [username, email]
     );
@@ -168,7 +168,7 @@ app.post('/api/auth/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create user
-    const result = await pool.query(
+    const result = await query(
       'INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3) RETURNING id, username, email, created_at',
       [username, email, hashedPassword]
     );
@@ -204,7 +204,7 @@ app.post('/api/auth/register', async (req, res) => {
  */
 app.get('/api/domains', authenticateToken, async (req, res) => {
   try {
-    const result = await pool.query(
+    const result = await query(
       'SELECT * FROM domains WHERE user_id = $1 ORDER BY created_at DESC',
       [req.user.userId]
     );
@@ -244,7 +244,7 @@ app.post('/api/domains', authenticateToken, async (req, res) => {
   }
 
   try {
-    const result = await pool.query(
+    const result = await query(
       'INSERT INTO domains (domain, user_id) VALUES ($1, $2) RETURNING *',
       [domain, req.user.userId]
     );
@@ -284,7 +284,7 @@ app.delete('/api/domains/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
 
   try {
-    await pool.query(
+    await query(
       'DELETE FROM domains WHERE id = $1 AND user_id = $2',
       [id, req.user.userId]
     );
@@ -321,7 +321,7 @@ app.post('/api/test/:domainId', authenticateToken, async (req, res) => {
   
   let domain;
   try {
-    const result = await pool.query(
+    const result = await query(
       'SELECT * FROM domains WHERE id = $1 AND user_id = $2',
       [domainId, req.user.userId]
     );
@@ -349,7 +349,7 @@ app.post('/api/test/:domainId', authenticateToken, async (req, res) => {
 
     // Store results in database
     try {
-      await pool.query(
+      await query(
         'INSERT INTO test_results (domain_id, test_type, status, results, recommendations) VALUES ($1, $2, $3, $4, $5)',
         [domainId, 'comprehensive', evaluation.overall_status, JSON.stringify(responseData), evaluation.recommendations.join('\n')]
       );
@@ -387,7 +387,7 @@ app.get('/api/test/:domainId', authenticateToken, async (req, res) => {
   const { domainId } = req.params;
   
   try {
-    const result = await pool.query(
+    const result = await query(
       'SELECT * FROM test_results WHERE domain_id = $1 ORDER BY created_at DESC LIMIT 1',
       [domainId]
     );
