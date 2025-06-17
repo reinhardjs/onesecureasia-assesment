@@ -550,5 +550,6 @@ app.listen(PORT, () => {
 
 // Export the app for server startup and runSecurityTests for testing
 module.exports = { 
-  app
+  app, 
+  runSecurityTests
 };
