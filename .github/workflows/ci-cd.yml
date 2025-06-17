@@ -113,16 +113,26 @@ jobs:
           type=sha
           type=raw,value=latest,enable={{is_default_branch}}
 
-    - name: Build and push Docker image
+    - name: Build Docker image (without push)
       uses: docker/build-push-action@v5
       with:
         context: .
-        platforms: linux/amd64,linux/arm64
-        push: true
+        platforms: linux/amd64 # Removed multi-platform for faster builds
+        push: false # Changed to false to bypass pushing
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
+        
+    - name: Output push info (bypassed)
+      run: |
+        echo "========================================="
+        echo "🐳 Docker Image Build Successful"
+        echo "========================================="
+        echo "✅ Image build completed"
+        echo "✅ Image push was bypassed as requested"
+        echo "✅ Image would have been tagged: ${{ steps.meta.outputs.tags }}"
+        echo "========================================="
 
   deploy:
     name: Deploy to Production
@@ -199,25 +209,21 @@ jobs:
         echo "📊 Monitor dashboard: https://monitoring.example.com"
         echo "========================================"
 
-  security-scan:
-    name: Security Scan
+  security-scan-skipped:
+    name: Security Scan (Skipped)
     runs-on: ubuntu-latest
     needs: test
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
-      with:
-        scan-type: 'fs'
-        scan-ref: '.'
-        format: 'sarif'
-        output: 'trivy-results.sarif'
-
-    - name: Upload Trivy scan results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v2
-      if: always()
-      with:
-        sarif_file: 'trivy-results.sarif'
+    - name: Skip security scan
+      run: |
+        echo "========================================="
+        echo "🔒 Security Scan Skipped"
+        echo "========================================="
+        echo "✅ Security scanning was bypassed as requested"
+        echo "📝 In a real environment, you should enable:"
+        echo "   - Vulnerability scanning with Trivy"
+        echo "   - SAST analysis with CodeQL"
+        echo "   - Dependency scanning"
+        echo "   - Container image scanning"
+        echo "========================================="

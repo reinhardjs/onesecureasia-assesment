@@ -4,6 +4,13 @@
 echo "🛡️ Starting OneSecure Asia Domain Security Assessment Platform"
 echo "=============================================================="
 
+# Check if Docker mode is requested
+if [ "$1" == "--docker" ]; then
+    echo "🐳 Starting in Docker mode..."
+    ./docker-dev.sh
+    exit $?
+fi
+
 # Check if .env exists
 if [ ! -f .env ]; then
     echo "📝 Creating .env file from template..."
