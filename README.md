@@ -2,6 +2,11 @@
 
 A comprehensive full-stack application for testing domain security configurations including DMARC, SPF, DKIM, and mail server security assessments.
 
+## 🚩 Launch Options
+
+- `./start-dev.sh` - Run in standard mode (full-stack: backend + frontend)
+- `./start-dev.sh --docker` - Run in Docker mode (containerized development environment)
+
 ## 🛡️ Features
 
 - **User Authentication**: Secure login/registration system with JWT tokens
@@ -44,7 +49,7 @@ A comprehensive full-stack application for testing domain security configuration
 
 ### 🎯 Simple Local Development
 
-**Backend Only (API + Python Scripts):**
+**Standard Development Mode:**
 ```bash
 git clone https://github.com/reinhardjs-agent/onesecureasia-assesment.git
 cd onesecureasia-assesment
@@ -53,23 +58,28 @@ cd onesecureasia-assesment
 
 This script will:
 - ✅ Create `.env` file from template
-- ✅ Install all dependencies (Python, Backend)
+- ✅ Install all dependencies (Python, Backend, Frontend)
 - ✅ Start backend server on port 3001 with API docs
-- ✅ Ready for domain security testing via API
+- ✅ Start frontend development server on port 3000
+- ✅ Ready for full-stack development and testing
+
+**Docker Development Mode:**
+```bash
+git clone https://github.com/reinhardjs-agent/onesecureasia-assesment.git
+cd onesecureasia-assesment
+./start-dev.sh --docker
+```
+
+The Docker development mode will:
+- ✅ Create `.env` file from template if needed
+- ✅ Build and run Docker containers for PostgreSQL, Backend, and Frontend
+- ✅ Mount source code directories as volumes for live reloading
+- ✅ Access services on the same ports (backend: 3001, frontend: 3000)
 
 The backend uses a unified test runner (`test_runner.py`) that runs all security tests and provides:
 - Consistent scoring methodology
 - Comprehensive security evaluation
 - Clear recommendations for security improvements
-
-**Frontend + Backend (Full Development):**
-```bash
-# Terminal 1: Start backend
-./start-dev.sh
-
-# Terminal 2: Start frontend (optional)
-cd frontend && npm install && npm start
-```
 
 ### 📋 Manual Setup (Alternative)
 
@@ -102,15 +112,25 @@ cd frontend && npm install && npm start
    cd frontend && npm start
    ```
 
-### 🐳 Docker Deployment
+### 🐳 Docker Options
 
-**Note**: Local development is recommended. Docker builds may fail in restricted network environments.
+**Development Mode (with live reloading):**
+```bash
+# Start with frontend and backend
+./start-dev.sh --docker
 
+# Start backend only
+./start-dev.sh --docker --backend-only
+```
+
+**Production Deployment:**
 ```bash
 cp .env.example .env
-# Edit .env with your settings
+# Edit .env with your production settings
 docker compose up --build
 ```
+
+**Note**: Docker builds use DNS settings like 8.8.8.8 (Google DNS) to avoid network resolution issues in restricted environments.
 
 ### 🔍 Testing the Application
 

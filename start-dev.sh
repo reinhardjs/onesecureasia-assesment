@@ -62,13 +62,22 @@ else
     exit 1
 fi
 
+# Start frontend in background
 echo ""
-echo "🎉 Backend server started!"
+echo "🚀 Starting frontend development server..."
+(cd frontend && npm start) &
+FRONTEND_PID=$!
+
+# Wait a moment for frontend to start
+sleep 5
+
+echo ""
+echo "🎉 Services started successfully!"
 echo "Backend:  http://localhost:3001"
 echo "API Docs: http://localhost:3001/api-docs"
+echo "Frontend: http://localhost:3000"
 echo ""
-echo "Note: For full frontend development, run 'cd frontend && npm start' in another terminal"
-echo "Press Ctrl+C to stop backend server"
+echo "Press Ctrl+C to stop all servers"
 
 # Function to cleanup on exit
 cleanup() {
@@ -76,11 +85,13 @@ cleanup() {
     echo "🛑 Stopping servers..."
     kill $BACKEND_PID 2>/dev/null
     echo "✅ Backend server stopped"
+    kill $FRONTEND_PID 2>/dev/null
+    echo "✅ Frontend server stopped"
     exit 0
 }
 
 # Trap Ctrl+C
 trap cleanup INT
 
-# Wait for user to stop
-wait $BACKEND_PID
+# Wait for processes to complete
+wait $BACKEND_PID $FRONTEND_PID
