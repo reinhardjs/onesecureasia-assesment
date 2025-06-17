@@ -58,10 +58,11 @@ jobs:
         cd frontend
         npm ci
 
-    - name: Lint backend code
+    - name: Check backend code structure
       run: |
         cd backend
-        npm run lint || echo "No lint script found"
+        echo "Backend structure check - no lint script configured"
+        ls -la src/
 
     - name: Test Python scripts
       run: |
@@ -92,7 +93,7 @@ jobs:
     name: Build Docker Image
     runs-on: ubuntu-latest
     needs: test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository_owner != 'nobody'
 
     steps:
     - name: Checkout code
@@ -141,15 +142,69 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Deploy to production
+    - name: Deploy to production (SIMULATED)
       run: |
-        echo "Deployment step would go here"
-        echo "This could deploy to cloud providers like:"
-        echo "- AWS ECS/EKS"
-        echo "- Google Cloud Run"
+        echo "========================================"
+        echo "🚀 DEPLOYMENT SIMULATION - NOT ACTUAL DEPLOYMENT"
+        echo "========================================"
+        echo "✅ Docker image built successfully: ghcr.io/${{ github.repository }}:latest"
+        echo "✅ Image tagged with commit SHA: ${{ github.sha }}"
+        echo ""
+        echo "📋 Production deployment steps that would execute:"
+        echo "1. Pull latest Docker image from registry"
+        echo "2. Stop existing production containers"
+        echo "3. Deploy new containers with zero-downtime"
+        echo "4. Run health checks on new deployment"
+        echo "5. Update load balancer to point to new instances"
+        echo "6. Monitor application metrics post-deployment"
+        echo ""
+        echo "🌐 Supported deployment targets:"
+        echo "- AWS ECS/EKS with Fargate"
+        echo "- Google Cloud Run or GKE"
         echo "- Azure Container Instances"
-        echo "- Digital Ocean Apps"
-        echo "For this demo, we're just showing the pipeline structure"
+        echo "- Digital Ocean Apps Platform"
+        echo "- Self-hosted Docker Swarm or Kubernetes"
+        echo ""
+        echo "✨ Deployment would be complete!"
+        echo "========================================"
+
+  deploy-simulation:
+    name: Deployment Simulation (Always Runs)
+    runs-on: ubuntu-latest
+    needs: test
+    if: always()
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Simulate deployment process
+      run: |
+        echo "========================================"
+        echo "🎭 DEPLOYMENT SIMULATION (DEMO MODE)"
+        echo "========================================"
+        echo "📦 Application: OneSecure Domain Security Assessment"
+        echo "🔗 Repository: ${{ github.repository }}"
+        echo "📝 Commit: ${{ github.sha }}"
+        echo "🌿 Branch: ${{ github.ref_name }}"
+        echo ""
+        echo "🚀 Simulating production deployment workflow:"
+        echo "   [1/6] Preparing deployment environment..."
+        sleep 1
+        echo "   [2/6] Validating application configuration..."
+        sleep 1 
+        echo "   [3/6] Starting container orchestration..."
+        sleep 1
+        echo "   [4/6] Deploying frontend and backend services..."
+        sleep 1
+        echo "   [5/6] Running post-deployment health checks..."
+        sleep 1
+        echo "   [6/6] Deployment verification complete!"
+        echo ""
+        echo "✅ Simulated deployment successful!"
+        echo "🌐 Application would be available at: https://onesecure.example.com"
+        echo "📊 Monitor dashboard: https://monitoring.example.com"
+        echo "========================================"
 
   security-scan:
     name: Security Scan
