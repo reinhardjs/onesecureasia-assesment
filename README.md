@@ -71,24 +71,31 @@ A comprehensive full-stack application for testing domain security configuration
    cd ..
    ```
 
-5. **Set up database (optional - will fallback to in-memory)**
-   ```bash
-   # Create PostgreSQL database
-   createdb onesecure_db
+5. **Configure environment variables**
    
-   # Set environment variables
-   export DB_HOST=localhost
-   export DB_PORT=5432
-   export DB_NAME=onesecure_db
-   export DB_USER=postgres
-   export DB_PASSWORD=your_password
-   export JWT_SECRET=your_jwt_secret
+   Copy the example environment file and configure your settings:
+   ```bash
+   cp .env.example .env
+   ```
+   
+   Edit `.env` file with your database credentials and JWT secret:
+   ```bash
+   # Example .env content
+   DB_HOST=localhost
+   DB_PORT=5432
+   DB_NAME=onesecure_db
+   DB_USER=postgres
+   DB_PASSWORD=your_password_here
+   JWT_SECRET=your_jwt_secret_key_here
+   NODE_ENV=development
+   PORT=3001
    ```
 
 6. **Start the development environment**
    ```bash
    # Terminal 1: Start backend
    cd backend
+   npm install  # Install dependencies including dotenv
    npm run dev
    
    # Terminal 2: Start frontend (in development mode)
@@ -99,6 +106,14 @@ A comprehensive full-stack application for testing domain security configuration
 ### Docker Deployment
 
 1. **Using Docker Compose (Recommended)**
+   
+   First, configure your environment:
+   ```bash
+   cp .env.example .env
+   # Edit .env with your production settings
+   ```
+   
+   Then start the services:
    ```bash
    docker-compose up --build
    ```
