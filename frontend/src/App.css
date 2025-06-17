@@ -1,0 +1,181 @@
+.App {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.app-header {
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 20px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.app-header h1 {
+  color: #1976d2;
+  margin: 0 0 10px 0;
+}
+
+.app-header p {
+  color: #666;
+  margin: 0;
+}
+
+.main-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.add-domain {
+  background: #f5f5f5;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+}
+
+.add-domain h2 {
+  margin-top: 0;
+  color: #333;
+}
+
+.add-domain form {
+  display: flex;
+  gap: 10px;
+}
+
+.add-domain input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.add-domain button {
+  padding: 10px 20px;
+  background: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.add-domain button:hover {
+  background: #1565c0;
+}
+
+.add-domain button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.domains h2 {
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.no-domains {
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  padding: 40px;
+}
+
+.domains-grid {
+  display: grid;
+  gap: 20px;
+}
+
+.domain-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.domain-card h3 {
+  margin: 0 0 5px 0;
+  color: #333;
+  font-size: 18px;
+}
+
+.domain-date {
+  margin: 0 0 15px 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.domain-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.test-btn {
+  padding: 8px 16px;
+  background: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.test-btn:hover {
+  background: #45a049;
+}
+
+.test-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.delete-btn {
+  padding: 8px 16px;
+  background: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background: #d32f2f;
+}
+
+.test-results {
+  margin-top: 15px;
+  padding: 15px;
+  background: #f9f9f9;
+  border-radius: 4px;
+}
+
+.test-results h4 {
+  margin: 0 0 10px 0;
+  color: #333;
+}
+
+.test-result {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.test-name {
+  font-weight: bold;
+  min-width: 120px;
+}
+
+.test-status {
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.test-message {
+  margin: 5px 0 0 130px;
+  color: #666;
+  font-size: 14px;
+}
