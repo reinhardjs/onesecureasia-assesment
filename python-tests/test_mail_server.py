@@ -59,17 +59,30 @@ def test_mail_server(domain: str) -> Dict[str, Any]:
         primary_mx = mx_records[0]['hostname']
         result['primary_mx'] = primary_mx
         
-        # Test SMTP connectivity
-        try:
-            import time
-            start_time = time.time()
-            
-            # Test basic SMTP connection
-            smtp = smtplib.SMTP(timeout=10)
-            smtp.connect(primary_mx, 25)
-            
-            end_time = time.time()
-            result['response_time_ms'] = int((end_time - start_time) * 1000)
+        # Test SMTP connectivity with retries
+        max_retries = 2
+        retry_count = 0
+        
+        while retry_count <= max_retries:
+            try:
+                import time
+                start_time = time.time()
+                
+                # Test basic SMTP connection with shorter timeout
+                smtp = smtplib.SMTP(timeout=5)
+                smtp.connect(primary_mx, 25)
+                
+                end_time = time.time()
+                result['response_time_ms'] = int((end_time - start_time) * 1000)
+                # Connection successful, break retry loop
+                break
+            except (socket.timeout, socket.error) as e:
+                retry_count += 1
+                if retry_count > max_retries:
+                    # Only report error if all retries failed
+                    raise
+                result['warnings'].append(f"Connection retry {retry_count}/{max_retries}")
+                time.sleep(1)  # Short delay between retries
             
             result['smtp_accessible'] = True
             
@@ -109,10 +122,6 @@ def test_mail_server(domain: str) -> Dict[str, Any]:
             
             smtp.quit()
             
-        except smtplib.SMTPConnectError as e:
-            result['errors'].append(f"SMTP connection failed: {str(e)}")
-        except smtplib.SMTPServerDisconnected as e:
-            result['errors'].append(f"SMTP server disconnected: {str(e)}")
         except socket.timeout:
             result['errors'].append("SMTP connection timeout")
         except socket.gaierror as e:

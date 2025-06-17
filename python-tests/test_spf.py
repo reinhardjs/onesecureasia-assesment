@@ -35,8 +35,19 @@ def test_spf(domain: str) -> Dict[str, Any]:
     }
     
     try:
-        # Query for TXT records
-        answers = dns.resolver.resolve(domain, 'TXT')
+        # Query for TXT records with a custom resolver and longer timeout
+        resolver = dns.resolver.Resolver()
+        resolver.timeout = 10
+        resolver.lifetime = 10
+        
+        try:
+            # Try Google's public DNS if default resolver fails
+            answers = resolver.resolve(domain, 'TXT')
+        except Exception as e:
+            # Fallback to Google DNS
+            result['warnings'].append(f"Falling back to Google DNS: {str(e)}")
+            resolver.nameservers = ['8.8.8.8', '8.8.4.4']
+            answers = resolver.resolve(domain, 'TXT')
         
         spf_records = []
         for answer in answers:

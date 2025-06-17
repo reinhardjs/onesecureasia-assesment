@@ -35,9 +35,20 @@ def test_dmarc(domain: str) -> Dict[str, Any]:
     }
     
     try:
-        # Query for DMARC record at _dmarc.domain
+        # Query for DMARC record with custom resolver and longer timeout
+        resolver = dns.resolver.Resolver()
+        resolver.timeout = 10
+        resolver.lifetime = 10
+        
         dmarc_domain = f"_dmarc.{domain}"
-        answers = dns.resolver.resolve(dmarc_domain, 'TXT')
+        
+        try:
+            # Try with default resolver
+            answers = resolver.resolve(dmarc_domain, 'TXT')
+        except Exception as e:
+            # Fallback to Google DNS
+            resolver.nameservers = ['8.8.8.8', '8.8.4.4']
+            answers = resolver.resolve(dmarc_domain, 'TXT')
         
         for answer in answers:
             record = answer.to_text().strip('"')
