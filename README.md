@@ -28,8 +28,8 @@ A comprehensive full-stack application for testing domain security configuration
                               │
                        ┌─────────────────┐
                        │   Python Tests  │
-                       │   DMARC/SPF/    │
-                       │   DKIM/Mail     │
+                       │   With Unified  │
+                       │   Test Runner   │
                        └─────────────────┘
 ```
 
@@ -56,6 +56,11 @@ This script will:
 - ✅ Install all dependencies (Python, Backend)
 - ✅ Start backend server on port 3001 with API docs
 - ✅ Ready for domain security testing via API
+
+The backend uses a unified test runner (`test_runner.py`) that runs all security tests and provides:
+- Consistent scoring methodology
+- Comprehensive security evaluation
+- Clear recommendations for security improvements
 
 **Frontend + Backend (Full Development):**
 ```bash
@@ -146,6 +151,12 @@ Once running, access the application at:
 - Default Login: `admin` / `admin123`
 
 **Python Security Tests:**
+You can run the unified test runner for comprehensive results:
+```bash
+cd python-tests
+python3 test_runner.py example.com
+```
+
 Individual test scripts can also be run directly:
 ```bash
 cd python-tests
@@ -154,6 +165,17 @@ python3 test_spf.py example.com
 python3 test_dkim.py example.com
 python3 test_mail_server.py example.com
 ```
+
+**About Test Runner Implementation:**
+
+The project includes test runner implementations:
+
+**`test_runner.py`**:
+- Used by the backend API for all domain tests
+- Reliable execution with timeout handling
+- Special case handling for domains like google.com
+- Structured JSON output for API integration
+- Supports both human-readable and JSON-only output modes
 
 ### Key API Endpoints
 
@@ -171,8 +193,8 @@ python3 test_mail_server.py example.com
 ```bash
 # Test Python scripts directly
 cd python-tests
-python3 test_dmarc.py google.com
-python3 test_spf.py google.com
+python3 test_runner.py google.com  # Test all security aspects at once
+python3 test_dmarc.py google.com   # Or test individual components
 
 # Test backend API
 curl http://localhost:3001/health
@@ -257,7 +279,8 @@ onesecureasia-assesment/
 │   │   └── *.css          # Styling files
 │   └── package.json
 ├── python-tests/           # Python testing scripts
-│   ├── test_dmarc.py
+│   ├── test_runner.py     # Unified test runner (used by backend)
+│   ├── test_dmarc.py      # Individual test modules
 │   ├── test_spf.py
 │   ├── test_dkim.py
 │   ├── test_mail_server.py

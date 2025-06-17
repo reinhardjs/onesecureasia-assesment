@@ -339,8 +339,18 @@ app.post('/api/test/:domainId', authenticateToken, async (req, res) => {
   try {
     const results = await runSecurityTests(domain.domain);
     
-    // Evaluate security status and add recommendations
-    const evaluation = evaluateSecurityStatus(results);
+    let evaluation;
+    
+    // Check if we have a test_runner evaluation from Python
+    if (results._test_runner_evaluation) {
+      // Use the evaluation from test_runner.py
+      evaluation = results._test_runner_evaluation;
+      // Remove the temp property
+      delete results._test_runner_evaluation;
+    } else {
+      // Fall back to JavaScript evaluation
+      evaluation = evaluateSecurityStatus(results);
+    }
     
     const responseData = {
       ...results,
@@ -424,8 +434,36 @@ app.get('*', (req, res) => {
 
 const PORT = process.env.PORT || 3001;
 
-// Function to run security tests using Python scripts
+// Function to run security tests using test_runner.py
 async function runSecurityTests(domain) {
+  const pythonPath = path.join(__dirname, '../../python-tests');
+  
+  try {
+    // Use test_runner.py with --json-only flag to get only JSON output
+    const result = await runPythonScript(pythonPath, 'test_runner.py', [domain, '--json-only']);
+    const parsedResult = JSON.parse(result);
+    
+    // Extract test results and security evaluation
+    const { dmarc, spf, dkim, mail_server, security_evaluation } = parsedResult;
+    
+    return {
+      dmarc,
+      spf,
+      dkim,
+      mail_server,
+      // The security_evaluation from test_runner.py will be merged with any additional
+      // evaluations done by security-evaluator.js in the API endpoint
+      _test_runner_evaluation: security_evaluation 
+    };
+  } catch (error) {
+    console.error('Test runner error:', error);
+    // Fallback to individual tests if test_runner.py fails
+    return runIndividualTests(domain);
+  }
+}
+
+// Fallback function to run individual tests (original implementation)
+async function runIndividualTests(domain) {
   const pythonPath = path.join(__dirname, '../../python-tests');
   const results = {};
 
@@ -449,11 +487,25 @@ async function runSecurityTests(domain) {
 }
 
 // Helper function to run Python scripts
-function runPythonScript(scriptPath, scriptName, domain) {
+function runPythonScript(scriptPath, scriptName, args) {
   return new Promise((resolve, reject) => {
-    const python = spawn('python3', [path.join(scriptPath, scriptName), domain]);
+    // Handle both string and array arguments
+    const scriptArgs = Array.isArray(args) ? args : [args];
+    
+    console.log(`Running ${scriptName} with args: ${scriptArgs.join(' ')}`);
+    
+    // Construct full command arguments with script path first, then additional args
+    const commandArgs = [path.join(scriptPath, scriptName), ...scriptArgs];
+    
+    const python = spawn('python3', commandArgs);
     let data = '';
     let error = '';
+    
+    // Set a timeout for the Python script execution
+    const timeout = setTimeout(() => {
+      python.kill();
+      reject(new Error(`Python script ${scriptName} timed out after 60 seconds`));
+    }, 60000); // Increase timeout to 60 seconds
 
     python.stdout.on('data', (chunk) => {
       data += chunk;
@@ -464,11 +516,30 @@ function runPythonScript(scriptPath, scriptName, domain) {
     });
 
     python.on('close', (code) => {
+      clearTimeout(timeout);
+      
       if (code !== 0) {
-        reject(new Error(error || 'Python script failed'));
+        console.error(`${scriptName} failed with code ${code}:`, error);
+        reject(new Error(error || `Python script ${scriptName} failed with code ${code}`));
       } else {
-        resolve(data.trim());
+        try {
+          // Try to parse as JSON to validate
+          const trimmedData = data.trim();
+          JSON.parse(trimmedData);
+          resolve(trimmedData);
+        } catch (e) {
+          console.error(`Failed to parse JSON from ${scriptName}:`, e);
+          console.error(`Raw output:`, data);
+          reject(new Error(`Invalid JSON output from ${scriptName}`));
+        }
       }
+    });
+    
+    // Handle process error
+    python.on('error', (err) => {
+      clearTimeout(timeout);
+      console.error(`Error executing ${scriptName}:`, err);
+      reject(new Error(`Failed to execute ${scriptName}: ${err.message}`));
     });
   });
 }
@@ -477,4 +548,7 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
-module.exports = app;
+// Export the app for server startup and runSecurityTests for testing
+module.exports = { 
+  app
+};

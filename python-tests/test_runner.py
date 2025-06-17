@@ -151,18 +151,25 @@ def evaluate_security(results, domain):
     return evaluation
 
 def main():
-    if len(sys.argv) != 2:
-        print("Usage: python3 test_runner.py <domain>")
+    if len(sys.argv) < 2:
+        print("Usage: python3 test_runner.py <domain> [--json-only]")
         print("Example: python3 test_runner.py google.com")
+        print("Add --json-only to output only the JSON result (for backend integration)")
         sys.exit(1)
     
     domain = sys.argv[1]
+    json_only = False
+    
+    # Check for json-only flag
+    if len(sys.argv) > 2 and sys.argv[2] == "--json-only":
+        json_only = True
     
     # Change to the script directory
     os.chdir(Path(__file__).parent)
     
-    print(f"Running security tests for domain: {domain}")
-    print("=" * 50)
+    if not json_only:
+        print(f"Running security tests for domain: {domain}")
+        print("=" * 50)
     
     tests = [
         ("test_dmarc.py", "DMARC"),
@@ -174,40 +181,47 @@ def main():
     results = {}
     
     for script, test_name in tests:
-        print(f"Running {test_name} test...")
+        if not json_only:
+            print(f"Running {test_name} test...")
         result = run_test(script, domain)
         results[test_name.lower().replace(" ", "_")] = result
         
-        if "error" in result:
-            print(f"❌ {test_name}: {result['error']}")
-        else:
-            print(f"✅ {test_name}: Test completed")
+        if not json_only:
+            if "error" in result:
+                print(f"❌ {test_name}: {result['error']}")
+            else:
+                print(f"✅ {test_name}: Test completed")
     
     # Evaluate security based on test results
     evaluation = evaluate_security(results, domain)
     results["security_evaluation"] = evaluation
     
-    print("\n" + "=" * 50)
-    print("EVALUATION SUMMARY:")
-    print("=" * 50)
+    if not json_only:
+        print("\n" + "=" * 50)
+        print("EVALUATION SUMMARY:")
+        print("=" * 50)
+        
+        for test, status in evaluation["test_statuses"].items():
+            icon = "✅" if status == "PASS" else "❌"
+            test_details = ""
+            if test == "dmarc" and "dmarc" in results and results["dmarc"].get("policy"):
+                test_details = f" - Policy: {results['dmarc']['policy']}"
+            print(f"{test.upper()}: {icon} {status}{test_details}")
+        
+        print("\nSecurity Score:")
+        print(f"  Overall Score: {evaluation['overall_score']}/100")
+        print(f"  Risk Level: {evaluation['risk_level']}")
+        print(f"  Status: {evaluation['overall_status']}")
+        print(f"  Tests Passed: {evaluation['tests_passed']}")
+        
+        if evaluation["recommendations"]:
+            print("\nRecommendations:")
+            for rec in evaluation["recommendations"]:
+                print(f"  - {rec}")
     
-    for test, status in evaluation["test_statuses"].items():
-        icon = "✅" if status == "PASS" else "❌"
-        test_details = ""
-        if test == "dmarc" and "dmarc" in results and results["dmarc"].get("policy"):
-            test_details = f" - Policy: {results['dmarc']['policy']}"
-        print(f"{test.upper()}: {icon} {status}{test_details}")
-    
-    print("\nSecurity Score:")
-    print(f"  Overall Score: {evaluation['overall_score']}/100")
-    print(f"  Risk Level: {evaluation['risk_level']}")
-    print(f"  Status: {evaluation['overall_status']}")
-    print(f"  Tests Passed: {evaluation['tests_passed']}")
-    
-    if evaluation["recommendations"]:
-        print("\nRecommendations:")
-        for rec in evaluation["recommendations"]:
-            print(f"  - {rec}")
+    # When in json-only mode, print only the JSON results
+    if json_only:
+        print(json.dumps(results))
     
     return results
 
