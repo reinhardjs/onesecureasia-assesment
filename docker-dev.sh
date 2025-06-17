@@ -27,10 +27,10 @@ echo "🚀 Building and starting services with Docker Compose Development Config
 # Build and start services using the dev configuration
 if [ "$BACKEND_ONLY" = true ]; then
     echo "Starting backend services only (PostgreSQL + Backend API)..."
-    docker compose -f docker-compose.dev.yml up --build postgres backend
+    docker compose -f docker-compose.dev.yml up postgres backend
 else
     echo "Starting all services (PostgreSQL + Backend + Frontend)..."
-    docker compose -f docker-compose.dev.yml up --build
+    docker compose -f docker-compose.dev.yml up
 fi
 
 # Function to cleanup on exit
